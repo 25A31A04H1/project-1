@@ -1,0 +1,111 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct student
+{
+    int roll;
+    char name[30];
+    int attendance;   // 1 = Present, 0 = Absent
+};
+
+void addStudent()
+{
+    struct student s;
+    FILE *fp = fopen("attendance.dat", "ab");
+
+    printf("\nEnter Roll Number: ");
+    scanf("%d", &s.roll);
+    printf("Enter Name: ");
+    scanf("%s", s.name);
+
+    s.attendance = 0; // default absent
+    fwrite(&s, sizeof(s), 1, fp);
+    fclose(fp);
+
+    printf("\nStudent Added Successfully!\n");
+}
+
+void markAttendance()
+{
+    struct student s;
+    int roll, found = 0;
+    FILE *fp = fopen("attendance.dat", "rb+");
+
+    printf("\nEnter Roll Number to mark attendance: ");
+    scanf("%d", &roll);
+
+    while (fread(&s, sizeof(s), 1, fp))
+    {
+        if (s.roll == roll)
+        {
+            printf("Student Name: %s\n", s.name);
+            printf("Enter 1 for Present, 0 for Absent: ");
+            scanf("%d", &s.attendance);
+
+            fseek(fp, -sizeof(s), SEEK_CUR);
+            fwrite(&s, sizeof(s), 1, fp);
+            found = 1;
+            break;
+        }
+    }
+
+    fclose(fp);
+
+    if (found)
+        printf("\nAttendance Marked Successfully!\n");
+    else
+        printf("\nStudent Not Found!\n");
+}
+
+void viewAttendance()
+{
+    struct student s;
+    FILE *fp = fopen("attendance.dat", "rb");
+
+    printf("\n--- Attendance List ---\n");
+    printf("Roll\tName\t\tStatus\n");
+
+    while (fread(&s, sizeof(s), 1, fp))
+    {
+        printf("%d\t%s\t\t%s\n", s.roll, s.name,
+               s.attendance ? "Present" : "Absent");
+    }
+
+    fclose(fp);
+}
+
+int main()
+{
+    int choice;
+
+    do
+    {
+        printf("\n===== STUDENT ATTENDANCE MANAGER =====");
+        printf("\n1. Add Student");
+        printf("\n2. Mark Attendance");
+        printf("\n3. View Attendance");
+        printf("\n4. Exit");
+        printf("\nEnter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice)
+        {
+        case 1:
+            addStudent();
+            break;
+        case 2:
+            markAttendance();
+            break;
+        case 3:
+            viewAttendance();
+            break;
+        case 4:
+            printf("\nExiting Program...\n");
+            break;
+        default:
+            printf("\nInvalid Choice!\n");
+        }
+    } while (choice != 4);
+
+    return 0;
+}
